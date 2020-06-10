@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xmlns:content="http://www.springframework.org/schema/context"
+       xsi:schemaLocation="
+       http://www.springframework.org/schema/beans
+       http://www.springframework.org/schema/beans/spring-beans.xsd
+       http://www.springframework.org/schema/context
+       http://www.springframework.org/schema/context/spring-context.xsd">
+
+    <!-- 读取 properties 文件 -->
+    <content:property-placeholder location="classpath:dbInfo.properties" ignore-unresolvable="true"/>
+
+    <!-- 配置 dataSource -->
+    <bean id="dataSource" class="com.mchange.v2.c3p0.ComboPooledDataSource">
+        <!-- 连接字段 -->
+        <property name="driverClass" value="${jdbc.driver}"/>
+        <property name="jdbcUrl" value="${jdbc.url}"/>
+        <property name="user" value="${jdbc.username}"/>
+        <property name="password" value="${jdbc.password}"/>
+
+        <!--连接数-->
+
+    </bean>
+
+    <!-- 配置 sqlSessionFactory 配置 -->
+    <bean id="sqlSessionFactory" class="org.mybatis.spring.SqlSessionFactoryBean">
+        <!-- 进行 mybatis 配置文件配置 -->
+        <property name="configLocation" value="classpath:mybatis/SqlMapConfig.xml"/>
+        <!-- 进行数据源配置 -->
+        <property name="dataSource" ref="dataSource"/>
+    </bean>
+
+    <!-- 扫描 mapper.java/mapper.xml 代理-->
+    <bean class="org.mybatis.spring.mapper.MapperScannerConfigurer">
+        <!-- 扫描包-->
+        <property name="basePackage" value="mapper,mapper.*"/>
+        <!-- sqlSessionFactory 配置,放置提前初始化 sqlSessionFactory
+            也可以不配置,但是：在没有配置这一行时，必须配置一个以
+            sqlSessionFactory命名的org.mybatis.spring.SqlSessionFactoryBean。
+            <property name="sqlSessionFactoryBeanName" value="sqlSessionFactory"/>
+        -->
+    </bean>
+</beans>

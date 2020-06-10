@@ -1,0 +1,115 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="mapper.S.Loan_MyLoanBookList">
+
+    <resultMap id="BaseResultMap" type="po.S.TbRecordQueryVo">
+        <!--借阅信息-->
+        <id column="id" property="id" jdbcType="INTEGER"/>
+        <result column="user_id" property="userId" jdbcType="INTEGER"/>
+        <result column="book_id" property="bookId" jdbcType="INTEGER"/>
+        <result column="recordDate" property="recorddate" jdbcType="BIGINT"/>
+        <result column="backDate" property="backdate" jdbcType="BIGINT"/>
+        <result column="returnbook" property="returnbook" jdbcType="INTEGER"/>
+        <result column="ticketFfee" property="ticketffee" jdbcType="REAL"/>
+        <!--图书名称-->
+        <result column="bookName" property="bookname" jdbcType="VARCHAR"/>
+    </resultMap>
+
+    <sql id="Base_Column_List">
+        tb_record.id, tb_record.user_id, tb_record.book_id, tb_record.recordDate, tb_record.backDate,
+        tb_record.returnbook, tb_record.ticketFfee,tb_library.bookName
+    </sql>
+    <!--查询用户图书借阅信息-->
+    <select id="selectByPrimaryKey" parameterType="java.lang.Integer" resultMap="BaseResultMap">
+        select
+        <include refid="Base_Column_List"/>
+        from
+        tb_user,tb_record,tb_library
+        where
+        tb_user.id=tb_record.user_id
+        AND
+        tb_record.book_id=tb_library.id
+        AND
+        tb_record.user_id = #{id}
+    </select>
+
+    <!--搜索图书借阅-->
+    <select id="selectLikeRecord" resultMap="BaseResultMap" parameterType="po.S.TbRecordQueryVoSelect">
+        SELECT
+        <include refid="Base_Column_List"/>
+        from
+        tb_user,tb_record,tb_library
+        where
+        tb_user.id=tb_record.user_id
+        AND
+        tb_record.book_id=tb_library.id
+        AND
+        tb_record.user_id = #{id}
+        AND
+        tb_library.bookName LIKE '%${bookName}%'
+    </select>
+
+    <!--    <resultMap id="OrderResultMap" type="po.TbOrder" >
+            <id column="id" property="id" jdbcType="INTEGER" />
+            <result column="user_id" property="userId" jdbcType="INTEGER" />
+            <result column="book_id" property="bookId" jdbcType="INTEGER" />
+            <result column="orderDate" property="orderdate" jdbcType="BIGINT" />
+            <result column="deadline" property="deadline" jdbcType="BIGINT" />
+        </resultMap>
+
+        &lt;!&ndash;预约成功&ndash;&gt;
+        <select id="selectOrderById" parameterType="po.S.TbOrderItems" resultMap="OrderResultMap">
+            select id,user_id,book_id,orderDate,deadline
+            from tb_order where user_id=#{userId}
+        </select>-->
+
+    <resultMap id="OrderBaseResultMap" type="po.S.TbOrderItems">
+        <!--预约信息-->
+        <id column="id" property="id" jdbcType="INTEGER"/>
+        <result column="user_id" property="userId" jdbcType="INTEGER"/>
+        <result column="book_id" property="bookId" jdbcType="INTEGER"/>
+        <result column="orderDate" property="orderdate" jdbcType="BIGINT"/>
+        <result column="deadline" property="deadline" jdbcType="BIGINT"/>
+        <!--图书信息-->
+        <result column="bookName" property="bookName"/>
+    </resultMap>
+
+    <!--预约成功-->
+    <select id="selectOrderById" parameterType="java.lang.Integer" resultMap="OrderBaseResultMap">
+        select
+        tb_order.id,tb_order.user_id,tb_order.book_id,tb_order.orderDate,tb_order.deadline,tb_library.bookName
+        from tb_order,tb_library
+        where tb_order.book_id=tb_library.id
+        and tb_order.user_id=#{id}
+    </select>
+
+    <!--借阅中-->
+    <select id="selectRecordRun" parameterType="java.lang.Integer" resultMap="BaseResultMap">
+        select
+        <include refid="Base_Column_List"/>
+        from tb_record,tb_library
+        where backDate &gt; UNIX_TIMESTAMP()
+        and user_id=#{id} and returnbook=0
+        AND tb_record.book_id=tb_library.id
+    </select>
+
+    <!--逾期，未归还-->
+    <select id="selectRecordOverdue" parameterType="java.lang.Integer" resultMap="BaseResultMap">
+        select
+        <include refid="Base_Column_List"/>
+        from tb_record,tb_library
+        where backDate &lt; UNIX_TIMESTAMP()
+        and user_id=#{id} and returnbook=0
+        AND tb_record.book_id=tb_library.id
+    </select>
+
+    <!--已归还-->
+    <select id="selectRecordReturn" parameterType="java.lang.Integer" resultMap="BaseResultMap">
+        select
+        <include refid="Base_Column_List"/>
+        from tb_record,tb_library
+        where user_id=#{id}
+        and returnbook=1
+        and tb_record.book_id=tb_library.id
+    </select>
+</mapper>

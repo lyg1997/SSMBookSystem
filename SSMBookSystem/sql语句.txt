@@ -1,0 +1,120 @@
+
+图书分类表
+CREATE TABLE tb_category  (
+  id int(10),
+  manager_id int(10),
+  catName varchar(50),
+  parent_id int(10),
+  is_parent int(1) UNSIGNED ,
+  createDate bigint(30),
+  PRIMARY KEY (id) USING BTREE,
+  INDEX mid ( manager_id ) USING BTREE,
+  INDEX parent_id (parent_id) USING BTREE,
+  CONSTRAINT mid FOREIGN KEY (manager_id) REFERENCES tb_manager (id) 
+);
+
+
+图书信息表
+CREATE TABLE tb_library  (
+  id int(10),
+  cate_id int(10),
+  manager_id int(10),
+  bookName varchar(255),
+  description varchar(255),
+  author varchar(50),
+  press varchar(255),
+  img varchar(255),
+  price float(10, 2),
+  publishDate  bigint(30),
+  createDate bigint(30) ,
+  bookNum int(11),
+  barcode varchar(255) ,
+  PRIMARY KEY (id) ,
+  INDEX cate_id(cate_id) USING BTREE,
+  INDEX manager_id (manager_id) USING BTREE,
+  CONSTRAINT tb_library_ibfk_1 FOREIGN KEY (cate_id) REFERENCES tb_category (id) ,
+  CONSTRAINT tb_library_ibfk_2 FOREIGN KEY (manager_id) REFERENCES tb_manager (id)
+) ;
+
+
+图书评论回复表
+CREATE TABLE tb_reply  (
+  id int(11),
+  comment_id int(11) ,
+  content CHARACTER ,
+  replyDate bigint(30) ,
+  PRIMARY KEY (id) USING BTREE,
+  INDEX comment_id (comment_id) USING BTREE,
+  CONSTRAINT tb_reply_ibfk_1 FOREIGN KEY (comment_id) REFERENCES tb_comment (id) 
+) ;
+
+
+图书评论表
+CREATE TABLE tb_comment  (
+  id int(11) NOT NULL AUTO_INCREMENT,
+  user_id int(11) NULL DEFAULT NULL,
+  book_id int(11) NOT NULL ,
+  content text CHARACTER SET utf8 COLLATE utf8_general_ci NULL,
+  commentDate bigint(30) NOT NULL ,
+  top int(11) UNSIGNED ZEROFILL NULL DEFAULT NULL,
+  PRIMARY KEY (id) USING BTREE,
+  INDEX user_id (user_id) USING BTREE,
+  INDEX book_id (book_id) USING BTREE
+);
+
+
+管理员表
+CREATE TABLE tb_manager  (
+  id int(10) NOT NULL AUTO_INCREMENT,
+  managerName varchar(30),
+  password varchar(32),
+  PRIMARY KEY ( id ) USING BTREE
+);
+
+
+图书预定表
+CREATE TABLE tb_order  (
+  id int(10),
+  user_id int(10),
+  book_id int(10),
+  orderDate bigint(30),
+  deadline bigint(11),
+  PRIMARY KEY (id) USING BTREE,
+  INDEX user_id (user_id) USING BTREE,
+  INDEX book_id (book_id) USING BTREE
+);
+
+
+图书借阅表
+CREATE TABLE tb_record  (
+  id int(10),
+  user_id int(10),
+  book_id int(10),
+  recordDate bigint(30),
+  backDate bigint(30),
+  returnbook int(1),
+  ticketFfee float NULL DEFAULT NULL,
+  PRIMARY KEY (id) USING BTREE,
+  INDEX user_id (user_id) USING BTREE,
+  INDEX book_id (book_id) USING BTREE
+) ;
+
+
+学生用户表
+CREATE TABLE tb_user  (
+  id int(10),
+  userName varchar(30),
+  password varchar(32),
+  registerDate bigint(30) ,
+  afterdate bigint(30) ,
+  realName varchar(30),
+  age int(11) ,
+  sex char(1) ,
+  telNum varchar(13),
+  email varchar(50),
+  idcard varchar(18),
+  headimg varchar(255) ,
+  isOnline int(1),
+  grade varchar(255) ,
+  PRIMARY KEY (id) 
+);

@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="mapper.CustomMapper.Login_userMapperL">
+
+    <!--查询用户名和密码是否正确-->
+    <select id="selectUserByUsername" parameterType="po.TbUser" resultType="TbUser">
+      SELECT * FROM tb_user WHERE #{TbUser.userName}
+    </select>
+</mapper>

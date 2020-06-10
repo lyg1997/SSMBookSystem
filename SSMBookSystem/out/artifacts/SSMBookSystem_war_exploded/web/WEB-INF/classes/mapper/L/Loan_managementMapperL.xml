@@ -1,0 +1,208 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="mapper.L.Loan_managementMapperL">
+    <resultMap id="userInfo" type="po.TbUser">
+        <!--用户信息映射-->
+        <association property="tbUser" javaType="po.TbUser">
+            <result column="userName" property="username"/>
+            <result column="tel" property="telnum"/>
+            <result column="realname" property="realname"/>
+        </association>
+    </resultMap>
+
+    <!--映射 借阅记录查询结果-->
+    <resultMap id="LoanRecordDetailMap" type="po.L.TbRecordL">
+        <id column="recId" property="id"/>
+        <result column="recordDate" property="recorddate"/>
+        <result column="backDate" property="backdate"/>
+        <result column="returnBook" property="returnbook"/>
+
+        <!--映射用户信息-->
+        <association property="tbUser" javaType="TbUser">
+            <id column="userId" property="id"/>
+            <result column="username" property="username"/>
+            <result column="tel" property="telnum"/>
+            <result column="isblack" property="isonline"/>
+            <result column="realname" property="realname"/>
+        </association>
+
+        <!--映射图书信息-->
+        <association property="tbLibrary" javaType="TbLibrary">
+            <id column="bookId" property="id"/>
+            <result column="bookName" property="bookname"/>
+        </association>
+    </resultMap>
+    <!--查询 借阅记录-->
+    <select id="selectLoanRecord" parameterType="po.L.TbRecordL" resultMap="LoanRecordDetailMap">
+        SELECT rec.id recId,
+        book.id bookId,
+        book.bookName bookName,
+        tbuser.id userId,
+        tbuser.userName username,
+        tbuser.telNum tel,
+        tbuser.realName realname,
+        rec.recordDate recordDate,
+        rec.backDate backDate,
+        rec.returnbook returnBook
+        FROM tb_record rec,
+        tb_user tbuser,
+        tb_library book
+        WHERE rec.user_id=tbuser.id and rec.book_id=book.id
+        <if test="column!=null">
+            AND ${column} LIKE '%${keyWord}%'
+        </if>
+        <if test="currentPage!=null">
+            limit #{currentPage},#{pageRows}
+        </if>
+    </select>
+
+    <!--预约记录映射-->
+    <resultMap id="bespeakRecordMap" type="po.L.TbOrderL" extends="userInfo">
+        <id column="id" property="id"/>
+        <result column="bookId" property="bookId"/>
+        <result column="userId" property="userId"/>
+        <result column="orderDate" property="orderdate"/>
+        <result column="deadline" property="deadline"/>
+
+        <!--图书信息映射-->
+        <association property="tbLibrary" javaType="po.TbLibrary">
+            <result column="bookName" property="bookname"/>
+        </association>
+    </resultMap>
+    <!--查询预约列表-->
+    <select id="selectBespeakRecord" parameterType="po.L.TbOrderL" resultMap="bespeakRecordMap">
+        SELECT
+        tborder.id id,
+        tborder.book_id bookId,
+        library.bookName bookName,
+        tborder.user_id userId,
+        user.userName userName,
+        user.realName realname,
+        user.telNum tel,
+        tborder.orderDate orderDate,
+        (tborder.orderDate+604800)-UNIX_TIMESTAMP() deadline
+        FROM tb_order tborder,tb_user user,tb_library library
+        WHERE tborder.user_id=user.id AND tborder.book_id=library.id
+        <if test="column!=null">
+            AND ${column} LIKE '%${keyWord}%'
+        </if>
+        <if test="currentPage!=null">
+            limit #{currentPage},#{pageRows}
+        </if>
+    </select>
+
+
+    <resultMap id="loanOutStandingMap" type="po.L.TbRecordL">
+        <id column="id" property="id"/>
+        <result column="bookId" property="bookId"/>
+        <result column="userId" property="userId"/>
+        <result column="recordDate" property="recorddate"/>
+        <result column="backDate" property="backdate"/>
+        <result column="returnBook" property="returnbook"/>
+        <!--用户表信息映射-->
+        <association property="tbUser" javaType="po.TbUser">
+            <result column="userName" property="username"/>
+            <result column="tel" property="telnum"/>
+            <result column="isblack" property="isonline"/>
+            <result column="realname" property="realname"/>
+        </association>
+        <!--图书表信息映射-->
+        <association property="tbLibrary" javaType="po.TbLibrary">
+            <result column="bookName" property="bookname"/>
+        </association>
+    </resultMap>
+    <!--借出未还记录列表-->
+    <select id="selectLoanOutStanding" parameterType="po.L.TbRecordL" resultMap="loanOutStandingMap">
+        SELECT
+        record.id id,
+        record.book_id bookId,
+        library.bookName bookName,
+        record.user_id userId,
+        tbuser.userName userName,
+        tbuser.realName realname,
+        tbuser.telNum tel,
+        record.recordDate recordDate,
+        record.backDate backDate,
+        record.returnbook returnBook,
+        tbuser.isOnline isblack
+        FROM tb_record record, tb_user tbuser, tb_library library
+        WHERE record.user_id = tbuser.id AND record.book_id = library.id AND record.returnbook = 0
+        <if test="column!=null">
+            AND ${column} LIKE '%${keyWord}%'
+        </if>
+        <if test="currentPage!=null">
+            limit #{currentPage},#{pageRows}
+        </if>
+    </select>
+
+
+
+    <!--借阅记录表 修改归还状态-->
+    <select id="updateLoanReturnBook" parameterType="po.L.loanStatusL" resultType="int">
+      UPDATE tb_record SET returnbook = #{status} WHERE id = #{id}
+    </select>
+
+    <!--插入借阅记录-->
+    <insert id="insertLoanList" parameterType="po.TbRecord">
+        INSERT INTO tb_record (book_id,user_id,recordDate,backDate,returnbook) VALUES
+(#{bookId},#{userId},UNIX_TIMESTAMP(),UNIX_TIMESTAMP()+604800,0)
+    </insert>
+
+    <!--删除预约记录-->
+    <delete id="deleteOrderList" parameterType="int">
+        DELETE FROM tb_order WHERE id = #{value}
+    </delete>
+
+
+    <!--更新用户是否黑名单操作-->
+    <select id="updateUserBlack" parameterType="int">
+      UPDATE tb_user SET isOnline = 1 WHERE id = #{value}
+    </select>
+
+    <resultMap id="OutTimeListMap" type="po.L.LoanOutTimeL">
+        <id column="id" property="id"/>
+        <result column="bookId" property="bookId"/>
+        <result column="userId" property="userId"/>
+        <result column="recordDate" property="recorddate"/>
+        <result column="backDate" property="backdate"/>
+        <result column="returnBook" property="returnbook"/>
+        <result column="outtime" property="outTime"/>
+        <!--用户表信息映射-->
+        <association property="tbUser" javaType="po.TbUser">
+            <result column="userName" property="username"/>
+            <result column="tel" property="telnum"/>
+            <result column="isblack" property="isonline"/>
+            <result column="realname" property="realname"/>
+        </association>
+        <!--图书表信息映射-->
+        <association property="tbLibrary" javaType="po.TbLibrary">
+            <result column="bookName" property="bookname"/>
+        </association>
+    </resultMap>
+
+    <!--借阅超时记录查询-->
+    <select id="selectOutTimeList" parameterType="po.L.LoanOutTimeL" resultMap="OutTimeListMap">
+        SELECT
+        rec.id id,
+        rec.book_id bookId,
+        library.bookName bookName,
+        rec.user_id userId,
+        tbuser.userName userName,
+        tbuser.realName realname,
+        tbuser.telNum tel,
+        rec.recordDate recordDate,
+        rec.backDate backDate,
+        rec.returnbook returnBook,
+        tbuser.isOnline isblack,
+        UNIX_TIMESTAMP()-rec.backDate outtime
+        FROM tb_record rec, tb_user tbuser, tb_library library
+        WHERE rec.user_id = tbuser.id AND rec.book_id = library.id AND rec.returnbook = 0 AND rec.backDate &lt;
+        UNIX_TIMESTAMP()
+        <if test="column!=null">
+            AND ${column} LIKE '%${keyWord}%'
+        </if>
+        <if test="currentPage!=null">
+            limit #{currentPage},#{pageRows}
+        </if>
+    </select>
+</mapper>

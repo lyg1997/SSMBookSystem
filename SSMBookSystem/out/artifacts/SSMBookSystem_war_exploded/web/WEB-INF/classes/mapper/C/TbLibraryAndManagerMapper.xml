@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+
+<mapper namespace="mapper.C.TbLibraryAndManagerMapper">
+
+    <select id="findLibraryByCriteria" parameterType="po.C.TbLibraryQuery" resultType="po.C.TblibraryExt">
+        SELECT
+        lib.id id,
+        lib.bookName bookname ,
+        lib.bookNum booknum,
+        lib.createDate createdate,
+        cate.catName categoryname,
+        admin.managerName create_admin,
+        lib.author author,
+        lib.img img
+        FROM
+        tb_library lib
+        LEFT JOIN tb_category cate on lib.cate_id = cate.id
+        LEFT JOIN tb_manager admin on lib.manager_id = admin.id
+        <where>
+            <if test="cateId != 0">
+                cate.id = #{cateId}
+            </if>
+
+            <if test="bookname != null">
+                and lib.bookName like '%${bookname}%'
+            </if>
+        </where>
+    </select>
+    <select id="findAll" parameterType="po.C.TbLibraryQuery" resultType="po.C.TblibraryExt">
+        SELECT
+        lib.id id,
+        lib.bookName bookname ,
+        lib.bookNum booknum,
+        lib.createDate createdate,
+        cate.catName categoryname,
+        admin.managerName create_admin,
+        lib.author author,
+        lib.img img
+        FROM
+        tb_library lib
+        LEFT JOIN tb_category cate on lib.cate_id = cate.id
+        LEFT JOIN tb_manager admin on lib.manager_id = admin.id
+        <where>
+            <if test="bookname != null">
+                and lib.bookName like '%${bookname}%'
+            </if>
+        </where>
+    </select>
+</mapper>
